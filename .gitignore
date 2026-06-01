@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+dist/
+build/
+target/
+*.class
+*.jar
+*.war
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env files
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Upload
+uploadPath/
+D:/ruoyi/uploadPath/
+
+# Package lock (optional - keep for reproducibility)
+# package-lock.json

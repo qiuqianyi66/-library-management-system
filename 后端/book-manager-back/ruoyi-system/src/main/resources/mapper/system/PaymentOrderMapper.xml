@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.PaymentOrderMapper">
+
+    <resultMap type="PaymentOrder" id="PaymentOrderResult">
+        <id     property="orderId"    column="order_id"     />
+        <result property="fineId"     column="fine_id"      />
+        <result property="amount"     column="amount"       />
+        <result property="payMethod"  column="pay_method"   />
+        <result property="payStatus"  column="pay_status"   />
+        <result property="tradeNo"    column="trade_no"     />
+        <result property="createTime" column="create_time"  />
+        <result property="payTime"    column="pay_time"     />
+    </resultMap>
+
+    <sql id="selectOrderVo">
+        select order_id, fine_id, amount, pay_method, pay_status, trade_no, create_time, pay_time
+        from tb_payment_order
+    </sql>
+
+    <insert id="insertOrder" parameterType="PaymentOrder" useGeneratedKeys="true" keyProperty="orderId">
+        insert into tb_payment_order(
+            <if test="fineId != null">fine_id,</if>
+            <if test="amount != null">amount,</if>
+            <if test="payMethod != null and payMethod != ''">pay_method,</if>
+            <if test="payStatus != null and payStatus != ''">pay_status,</if>
+            <if test="tradeNo != null and tradeNo != ''">trade_no,</if>
+            <if test="payTime != null">pay_time,</if>
+            create_time
+        )values(
+            <if test="fineId != null">#{fineId},</if>
+            <if test="amount != null">#{amount},</if>
+            <if test="payMethod != null and payMethod != ''">#{payMethod},</if>
+            <if test="payStatus != null and payStatus != ''">#{payStatus},</if>
+            <if test="tradeNo != null and tradeNo != ''">#{tradeNo},</if>
+            <if test="payTime != null">#{payTime},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateOrder" parameterType="PaymentOrder">
+        update tb_payment_order
+        <set>
+            <if test="amount != null">amount = #{amount},</if>
+            <if test="payMethod != null and payMethod != ''">pay_method = #{payMethod},</if>
+            <if test="payStatus != null and payStatus != ''">pay_status = #{payStatus},</if>
+            <if test="tradeNo != null and tradeNo != ''">trade_no = #{tradeNo},</if>
+            <if test="payTime != null">pay_time = #{payTime},</if>
+        </set>
+        where order_id = #{orderId}
+    </update>
+
+    <select id="selectByOrderId" parameterType="Long" resultMap="PaymentOrderResult">
+        <include refid="selectOrderVo"/>
+        where order_id = #{orderId}
+    </select>
+
+    <select id="selectByFineId" parameterType="Long" resultMap="PaymentOrderResult">
+        <include refid="selectOrderVo"/>
+        where fine_id = #{fineId}
+        order by create_time desc
+    </select>
+
+</mapper>
