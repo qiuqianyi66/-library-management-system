@@ -36,6 +36,10 @@
           </div>
           <div class="book-info">
             <div class="book-name">{{ book.bookName }}</div>
+            <div class="book-rating-line">
+              <book-rating :value="book.avgRating || 0" :readonly="true" />
+              <span class="rating-count">{{ book.ratingCount || 0 }}人评</span>
+            </div>
             <div class="book-author">作者：{{ book.author }}</div>
             <div class="book-publisher">出版社：{{ book.press }}</div>
             <div class="book-stock">
@@ -57,41 +61,103 @@
       @pagination="getList"
     />
 
-    <el-dialog :title="title" :visible.sync="open" width="600px" append-to-body>
-      <el-form ref="form" :model="form" label-width="100px">
-        <el-row>
-          <el-col :span="8">
-            <div class="detail-cover">
-              <img v-if="form.coverUrl" :src="form.coverUrl" style="width:100%;" />
-              <i v-else class="el-icon-reading" style="font-size: 120px; color: #ccc; display: block; text-align: center;"></i>
-            </div>
-          </el-col>
-          <el-col :span="16">
-            <el-form-item label="图书名称">
-              <span>{{ form.bookName }}</span>
-            </el-form-item>
-            <el-form-item label="作者">
-              <span>{{ form.author }}</span>
-            </el-form-item>
-            <el-form-item label="出版社">
-              <span>{{ form.press }}</span>
-            </el-form-item>
-            <el-form-item label="ISBN">
-              <span>{{ form.isbn }}</span>
-            </el-form-item>
-            <el-form-item label="分类">
-              <span>{{ form.categoryName }}</span>
-            </el-form-item>
-            <el-form-item label="库存">
-              <el-tag v-if="form.stockCount > 0" type="success" size="small">{{ form.stockCount }} 册可借</el-tag>
-              <el-tag v-else type="info" size="small">暂无库存</el-tag>
-            </el-form-item>
+    <!-- 图书详情弹窗 -->
+    <el-dialog :title="title" :visible.sync="open" width="750px" append-to-body>
+      <el-tabs v-model="activeTab">
+        <el-tab-pane label="图书信息" name="info">
+          <el-form ref="form" :model="form" label-width="100px">
+            <el-row>
+              <el-col :span="8">
+                <div class="detail-cover">
+                  <img v-if="form.coverUrl" :src="form.coverUrl" style="width:100%;" />
+                  <i v-else class="el-icon-reading" style="font-size: 120px; color: #ccc; display: block; text-align: center;"></i>
+                </div>
+              </el-col>
+              <el-col :span="16">
+                <el-form-item label="图书名称">
+                  <span>{{ form.bookName }}</span>
+                </el-form-item>
+                <el-form-item label="评分">
+                  <book-rating :value="form.avgRating || 0" :readonly="true" :show-text="true" />
+                  <span style="margin-left: 8px; color: #909399;">({{ form.ratingCount || 0 }}人评价)</span>
+                </el-form-item>
+                <el-form-item label="作者">
+                  <span>{{ form.author }}</span>
+                </el-form-item>
+                <el-form-item label="出版社">
+                  <span>{{ form.press }}</span>
+                </el-form-item>
+                <el-form-item label="ISBN">
+                  <span>{{ form.isbn }}</span>
+                </el-form-item>
+                <el-form-item label="分类">
+                  <span>{{ form.type }}</span>
+                </el-form-item>
+                <el-form-item label="库存">
+                  <el-tag v-if="form.stockCount > 0" type="success" size="small">{{ form.stockCount }} 册可借</el-tag>
+                  <el-tag v-else type="info" size="small">暂无库存</el-tag>
+                </el-form-item>
+              </el-col>
+            </el-row>
             <el-form-item label="简介">
               <span>{{ form.description }}</span>
             </el-form-item>
-          </el-col>
-        </el-row>
-      </el-form>
+          </el-form>
+        </el-tab-pane>
+
+        <el-tab-pane label="读者评论" name="reviews">
+          <div class="review-summary" v-if="reviews.length > 0">
+            <div class="avg-rating">
+              <book-rating :value="avgRating" :readonly="true" />
+              <span class="avg-text">{{ avgRating }} 分 · {{ reviews.length }} 条评论</span>
+            </div>
+          </div>
+          <div v-if="reviews.length === 0" style="text-align:center; padding: 30px; color: #909399;">
+            暂无评论，快来评分吧！
+          </div>
+
+          <div v-for="(review, idx) in reviews" :key="idx" class="review-item">
+            <div class="review-header">
+              <span class="review-user">{{ review.readerName || '匿名读者' }}</span>
+              <book-rating :value="review.rating" :readonly="true" />
+              <span class="review-time">{{ review.createTime }}</span>
+            </div>
+            <div class="review-content">{{ review.content }}</div>
+          </div>
+
+          <el-divider></el-divider>
+          <div class="submit-review">
+            <h4>写评论</h4>
+            <div style="margin-bottom: 10px;">
+              <book-rating v-model="newReview.rating" />
+            </div>
+            <el-input
+              type="textarea"
+              v-model="newReview.content"
+              placeholder="分享你的阅读体验..."
+              :rows="3"
+              maxlength="500"
+              show-word-limit
+            />
+            <el-button type="primary" style="margin-top: 10px;" @click="submitReview">提交评论</el-button>
+          </div>
+        </el-tab-pane>
+
+        <el-tab-pane label="相关推荐" name="recommend">
+          <div v-if="recommendList.length === 0" style="text-align:center; padding: 30px; color: #909399;">
+            暂无相关推荐
+          </div>
+          <el-row :gutter="20">
+            <el-col :span="12" v-for="(item, idx) in recommendList" :key="idx" style="margin-bottom: 15px;">
+              <el-card shadow="hover" class="recommend-card">
+                <div class="recommend-name">{{ item.book_name }}</div>
+                <div class="recommend-author">{{ item.author }}</div>
+              </el-card>
+            </el-col>
+          </el-row>
+        </el-tab-pane>
+      </el-tabs>
+
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancel">关 闭</el-button>
       </div>
@@ -101,9 +167,13 @@
 
 <script>
 import { searchBooks } from "@/api/portal/index";
+import { getBookReviews, submitReview } from "@/api/portal/review";
+import { recommendByBook } from "@/api/portal/recommend";
+import BookRating from "@/components/BookRating";
 
 export default {
   name: "BookSearch",
+  components: { BookRating },
   dicts: ['book_type_list'],
   data() {
     return {
@@ -118,7 +188,16 @@ export default {
       },
       title: "",
       open: false,
-      form: {}
+      form: {},
+      activeTab: 'info',
+      reviews: [],
+      avgRating: 0,
+      newReview: {
+        bookId: null,
+        rating: 5,
+        content: ''
+      },
+      recommendList: []
     };
   },
   created() {
@@ -145,18 +224,51 @@ export default {
       this.open = false;
     },
     handleDetail(row) {
-      this.form = {
-        bookName: row.bookName,
-        author: row.author,
-        press: row.press,
-        isbn: row.isbn,
-        categoryName: row.categoryName,
-        stockCount: row.stockCount,
-        description: row.description,
-        coverUrl: row.coverUrl
-      };
+      this.form = { ...row };
+      this.newReview = { bookId: row.bookId, rating: 5, content: '' };
+      this.activeTab = 'info';
       this.open = true;
-      this.title = "图书详情";
+      this.title = "📖 " + row.bookName;
+
+      // 加载评论
+      this.loadReviews(row.bookId);
+      // 加载推荐
+      this.loadRecommend(row.bookId);
+    },
+    loadReviews(bookId) {
+      getBookReviews(bookId).then(res => {
+        const data = res.data || {};
+        this.reviews = data.reviews || [];
+        this.avgRating = data.avgRating || 0;
+        // 更新当前选中图书的评分显示
+        this.form.avgRating = data.avgRating;
+        this.form.ratingCount = data.ratingCount;
+      }).catch(() => {
+        this.reviews = [];
+        this.avgRating = 0;
+      });
+    },
+    loadRecommend(bookId) {
+      recommendByBook(bookId).then(res => {
+        this.recommendList = res.data || [];
+      }).catch(() => {
+        this.recommendList = [];
+      });
+    },
+    submitReview() {
+      if (!this.newReview.content.trim()) {
+        this.$message.warning('请输入评论内容')
+        return
+      }
+      submitReview({
+        bookId: this.form.bookId,
+        rating: this.newReview.rating,
+        content: this.newReview.content
+      }).then(() => {
+        this.$message.success('评论提交成功！')
+        this.newReview.content = ''
+        this.loadReviews(this.form.bookId)
+      })
     }
   }
 };
@@ -197,10 +309,20 @@ export default {
   font-size: 14px;
   font-weight: bold;
   color: #303133;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.book-rating-line {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.rating-count {
+  font-size: 12px;
+  color: #909399;
+  margin-left: 4px;
 }
 .book-author,
 .book-publisher {
@@ -212,7 +334,7 @@ export default {
   white-space: nowrap;
 }
 .book-stock {
-  margin-top: 8px;
+  margin-top: 6px;
   text-align: right;
 }
 .detail-cover {
@@ -221,5 +343,58 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+/* 评论区域 */
+.review-summary {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #ebeef5;
+}
+.avg-rating {
+  display: flex;
+  align-items: center;
+}
+.avg-text {
+  font-size: 16px;
+  color: #303133;
+  margin-left: 12px;
+}
+.review-item {
+  padding: 12px 0;
+  border-bottom: 1px solid #f2f2f2;
+}
+.review-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.review-user {
+  font-weight: bold;
+  margin-right: 10px;
+}
+.review-time {
+  font-size: 12px;
+  color: #c0c4cc;
+  margin-left: 10px;
+}
+.review-content {
+  color: #606266;
+  line-height: 1.6;
+}
+.submit-review {
+  padding-top: 10px;
+}
+/* 推荐卡片 */
+.recommend-card {
+  cursor: pointer;
+}
+.recommend-name {
+  font-weight: bold;
+  color: #303133;
+  margin-bottom: 4px;
+}
+.recommend-author {
+  font-size: 12px;
+  color: #909399;
 }
 </style>

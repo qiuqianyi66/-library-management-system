@@ -66,6 +66,68 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         limit 10
     </select>
 
+    <!-- 推荐：查询读者借阅过的图书ID -->
+    <select id="selectBookIdsByReaderId" parameterType="Integer" resultType="Integer">
+        select distinct br.book_id
+        from tb_borrow_record br
+        where br.reader_id = #{readerId}
+    </select>
+
+    <!-- 推荐：协同过滤 - 看过这本书的人也看过 -->
+    <select id="selectCoBorrowedBooks" parameterType="Integer" resultType="java.util.Map">
+        select b.book_id, b.book_name, b.author, b.press, count(*) as score
+        from tb_borrow_record br1
+        join tb_borrow_record br2 on br1.reader_id = br2.reader_id
+        join tb_book b on br2.book_id = b.book_id
+        where br1.book_id = #{bookId}
+          and br2.book_id != #{bookId}
+          and br2.book_id not in (
+              select distinct book_id from tb_borrow_record where reader_id = #{readerId}
+          )
+        group by br2.book_id, b.book_name, b.author, b.press
+        order by score desc
+        limit 6
+    </select>
+
+    <!-- 推荐：读者未借阅过的热门图书 -->
+    <select id="selectUnborrowedHotBooks" parameterType="Integer" resultType="java.util.Map">
+        select b.book_id, b.book_name, b.author, b.press, count(br.book_id) as borrow_count
+        from tb_borrow_record br
+        join tb_book b on br.book_id = b.book_id
+        where br.book_id not in (
+            select distinct book_id from tb_borrow_record where reader_id = #{readerId}
+        )
+        group by br.book_id, b.book_name, b.author, b.press
+        order by borrow_count desc
+        limit 6
+    </select>
+
+    <!-- 阅读报告：读者近N天借阅趋势 -->
+    <select id="selectReaderBorrowTrend" parameterType="BorrowRecord" resultType="java.util.Map">
+        select date(br.borrow_date) as date, count(*) as count
+        from tb_borrow_record br
+        <where>
+            <if test="readerId != null and readerId != 0">
+                AND br.reader_id = #{readerId}
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''">
+                AND br.borrow_date &gt;= #{params.beginTime}
+            </if>
+        </where>
+        group by date(br.borrow_date)
+        order by date(br.borrow_date) asc
+    </select>
+
+    <!-- 阅读报告：读者借阅类型偏好 -->
+    <select id="selectReaderTypePreference" parameterType="Integer" resultType="java.util.Map">
+        select b.type, count(*) as count
+        from tb_borrow_record br
+        join tb_book b on br.book_id = b.book_id
+        where br.reader_id = #{readerId}
+        group by b.type
+        order by count desc
+    </select>
+
     <sql id="selectBorrowVo">
         select br.borrow_id, br.reader_id, br.book_id, br.borrow_date, br.due_date,
                br.return_date, br.status, br.renew_count, br.fine_amount,

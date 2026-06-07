@@ -72,6 +72,12 @@ public class Book extends BaseEntity
     @Excel(name = "状态", readConverterExp = "0=正常,1=停用")
     private String status;
 
+    /** 平均评分（非数据库字段） */
+    private Double avgRating;
+
+    /** 评分人数（非数据库字段） */
+    private Integer ratingCount;
+
     public Book()
     {
 
@@ -221,6 +227,26 @@ public class Book extends BaseEntity
     public void setStatus(String status)
     {
         this.status = status;
+    }
+
+    public Double getAvgRating()
+    {
+        return avgRating;
+    }
+
+    public void setAvgRating(Double avgRating)
+    {
+        this.avgRating = avgRating;
+    }
+
+    public Integer getRatingCount()
+    {
+        return ratingCount;
+    }
+
+    public void setRatingCount(Integer ratingCount)
+    {
+        this.ratingCount = ratingCount;
     }
 
     @Override
