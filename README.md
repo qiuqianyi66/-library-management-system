@@ -1,127 +1,223 @@
-# 高校图书管理系统 (Library Management System)
+<div align="center">
 
-基于 **RuoYi-Vue 3.8.9** 框架构建的商业级高校图书管理系统。
+# 📚 高校图书管理系统
+
+> Vibe Coding 氛围化 · 沉浸式阅读体验平台
+
+![Java](https://img.shields.io/badge/Java-21-blue)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-2.5.15-brightgreen)
+![Vue 2](https://img.shields.io/badge/Vue-2.6-4fc08d)
+![Element UI](https://img.shields.io/badge/Element_UI-2.15-409eff)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-orange)
+![Redis](https://img.shields.io/badge/Redis-5.0-red)
+
+---
+
+</div>
+
+## ✨ 项目亮点
+
+本项目从传统图书管理系统出发，融入 **Vibe Coding（氛围化设计）** 理念，打造有温度的「线上书屋」体验。
+
+| 传统系统 | 本系统 |
+|---------|--------|
+| 单调白背景 | 🎨 4 套动态主题（深夜阅读角/复古老书房等） |
+| 生硬文字通知 | 🦉 拟人助手「小书灵」温和提醒 |
+| 枯燥表格列表 | 📖 毛玻璃卡片 + 悬浮预览 |
+| 手动录入图书 | 📚 Google Books API 一键自动填充 |
+| 红色错误弹窗 | 💡 柔滑动画温和提示 |
+| 冷冰冰的警告 | 🌙 白噪音氛围 + 情绪化交互 |
+
+---
 
 ## 🚀 技术栈
 
-| 层级 | 技术 |
+### 后端
+
+| 技术 | 用途 |
 |------|------|
-| **后端框架** | Spring Boot 2.5.15, MyBatis, Spring Security + JWT |
-| **数据库** | MySQL 8.0 |
-| **缓存** | Redis (Lettuce) |
-| **前端框架** | Vue 2.6 + Element UI 2.15 + Vue Router + Vuex |
-| **图表** | ECharts 5.4 |
-| **构建工具** | Maven 3.x, Vue CLI 4 |
+| **Spring Boot 2.5.15** | 核心框架 |
+| **Spring Security + JWT** | 认证授权 |
+| **MyBatis + PageHelper** | ORM 与分页 |
+| **MySQL 8.0 + Druid** | 数据库与连接池 |
+| **Redis + Lettuce** | 缓存加速 |
+| **Swagger 3.0** | API 文档 |
+| **HttpUtils** | 对接 Google Books API |
 
-## ✨ 核心功能
+### 前端
 
-### 📚 图书管理
-- 图书录入、编辑、删除、上下架
-- 按书名、ISBN、作者、分类多维度检索
-- 库存实时管理
+| 技术 | 用途 |
+|------|------|
+| **Vue 2.6 + Vue Router** | 前端框架 |
+| **Element UI 2.15** | UI 组件库 |
+| **ECharts 5.4** | 数据可视化 |
+| **CSS Variables** | 动态主题系统 |
+| **Webpack** | 构建工具 |
 
-### 📖 借阅管理
-- 借书/还书/续借全流程
-- 读者状态自动校验（逾期检测、借阅上限控制）
-- 智能逾期罚款计算
+---
 
-### 💰 罚款与支付
-- 逾期自动计算罚款（0.5元/天）
-- 支持微信/支付宝在线支付
-- 支付订单管理与回调
+## 🎯 核心功能
 
-### 👤 读者自助门户
-- 我的借阅：查看当前和历史借阅记录
-- 在线续借、图书检索
-- 罚款查询与在线缴纳
+### 📖 图书管理
+- 图书 CRUD（增删改查）
+- ISBN 自动填充（对接 Google Books API）
+- 上下架状态管理
+- 库存实时跟踪
+
+### 📋 借阅管理
+- 借书（校验逾期 / 上限 5 本 / 库存）
+- 还书（逾期自动计算罚款）
+- 续借（上限 2 次，动态配置）
+- 并发控制（事务 + 库存同步）
+
+### 💰 罚款管理
+- 逾期自动生成罚款记录
+- 微信 / 支付宝支付
+- 支付回调处理
+
+### 🏠 读者门户
+- 图书检索与分类筛选
+- ⭐ **图书评分与评论**
+- 📊 **个人阅读报告**（ECharts）
+- 🤖 **智能推荐**（协同过滤算法）
+- 📖 **书籍悬浮预览**（毛玻璃效果）
 
 ### 📊 数据看板
-- 今日借阅/归还量、在借数量、逾期数量实时统计
-- 近7天借阅趋势图表
-- 热门图书 TOP10、罚款收入统计
+- 今日借还统计
+- 近 7 天借阅趋势
+- 热门图书 TOP10
+- 各类型图书分布
 
-### 🔒 系统安全
-- Spring Security + JWT 认证
-- 接口限流保护 (Redis)
-- XSS 防护、防重复提交
+---
+
+## 🎨 Vibe Coding 氛围化功能
+
+### 🎭 四套动态主题
+| 主题 | 风格 | 色调 |
+|------|------|------|
+| 现代简约 | 清爽商务 | 蓝色系 |
+| 复古老书房 | 温馨文艺 | 暖黄木质 |
+| 深夜阅读角 | 沉浸护眼 | 暗色星空 |
+| 校园自习馆 | 明亮清新 | 绿色系 |
+
+一键切换，全局 CSS 变量驱动，所有组件联动变色。
+
+### 🦉 拟人助手「小书灵」
+- SVG 猫头鹰角色，常驻页面右下角
+- 4 种情绪动画：开心 😊 / 思考 🤔 / 打瞌睡 😴 / 发呆
+- 气泡消息温和提醒，替代生硬弹窗
+- 点击互动，随机卖萌回复
+
+### 🔊 白噪音氛围面板
+- 四种场景音效：雨声 / 翻书声 / 咖啡馆 / 深夜
+- 声波动画可视化
+- 与主题系统联动
+
+### 📖 书籍悬浮预览
+- 鼠标悬停图书卡片，弹出毛玻璃便签
+- 显示评分 / 库存 / 简介
+- 300ms 延迟防误触，平滑动画
+
+### 💡 温和提醒系统
+- 全局 `$vibe` API 替代 `$message`
+- 柔滑弹出动画，毛玻璃背景
+- 四种类型：info / success / warning / gentle
+
+---
 
 ## 🏗️ 项目结构
 
 ```
 高校图书管理系统/
-├── 后端/book-manager-back/
-│   ├── ruoyi-admin/        # 控制器层 + 应用入口
-│   ├── ruoyi-framework/    # 框架核心（安全、配置、AOP）
-│   ├── ruoyi-system/       # 业务逻辑 + Mapper
-│   └── ruoyi-common/       # 通用工具、实体、注解
-├── 前端/book-manager-ui/   # Vue 2 前端工程
-└── data/                    # 数据库初始化 SQL
+├── 后端/book-manager-back/     # Spring Boot 多模块
+│   ├── ruoyi-admin/             # Controller + 入口
+│   ├── ruoyi-common/            # 实体 + 工具
+│   ├── ruoyi-system/            # Service + Mapper
+│   └── ruoyi-framework/         # 安全 + 配置
+├── 前端/book-manager-ui/        # Vue 2 前端
+│   ├── src/views/               # 页面组件
+│   ├── src/components/          # 通用组件
+│   ├── src/api/                 # API 封装
+│   ├── src/store/               # 状态管理
+│   └── src/styles/              # 样式 + 主题
+└── data/                        # SQL 初始化脚本
 ```
 
-## 📋 环境要求
+---
 
-- **JDK**: 1.8+
-- **MySQL**: 8.0+
-- **Redis**: 6.0+
-- **Node.js**: 12+
-- **Maven**: 3.6+
+## 🚦 快速启动
 
-## 🔧 快速开始
+### 环境要求
+- JDK 1.8+
+- Maven 3.6+
+- MySQL 8.0+
+- Redis 5.0+
+- Node.js 12+
 
-### 1. 数据库初始化
+### 1️⃣ 数据库初始化
 ```bash
-# 导入 data/book-manager.sql 到 MySQL
-mysql -u root -p < data/book-manager.sql
+mysql -u root -p
+CREATE DATABASE IF NOT EXISTS `book-manager` CHARACTER SET utf8mb4;
+USE `book-manager`;
+SOURCE data/book-manager.sql;
 ```
 
-### 2. 后端启动
+### 2️⃣ 启动后端
 ```bash
 cd 后端/book-manager-back
-# 修改 ruoyi-admin/src/main/resources/application.yml 中的数据库和 Redis 配置
-mvn clean install -pl ruoyi-admin -am
-cd ruoyi-admin
-mvn spring-boot:run
+mvn install -DskipTests
+mvn -f ruoyi-admin/pom.xml spring-boot:run
+# 访问 http://localhost:8091
 ```
-后端启动于 **http://localhost:8091**
 
-### 3. 前端启动
+### 3️⃣ 启动前端
 ```bash
 cd 前端/book-manager-ui
 npm install
 npm run dev
-```
-前端启动于 **http://localhost:82**
-
-### 4. 访问系统
-- 默认管理员账号：**admin / admin123**
-
-## 📝 配置说明
-
-核心配置位于 `后端/book-manager-back/ruoyi-admin/src/main/resources/application.yml`：
-- 数据库连接：`spring.datasource` 节点
-- Redis连接：`spring.redis` 节点
-- 文件上传路径：`ruoyi.profile`
-- JWT 密钥：`token.secret`
-
-借阅规则可通过系统参数配置页面动态调整（`borrow.max_count`, `fine.per_day` 等）。
-
-## 📦 部署
-
-### 后端部署
-```bash
-cd 后端/book-manager-back
-mvn clean package -pl ruoyi-admin -am
-# jar 包位于 ruoyi-admin/target/
-java -jar ruoyi-admin/target/ruoyi-admin.jar
+# 访问 http://localhost:82
 ```
 
-### 前端部署
-```bash
-cd 前端/book-manager-ui
-npm run build:prod
-# 将 dist/ 目录部署到 Nginx
+### 4️⃣ 登录
+| 账号 | 密码 | 角色 |
+|------|------|------|
+| `admin` | `admin123` | 管理员 |
+| `ry` | `admin123` | 读者 |
+
+---
+
+## 📸 功能预览
+
 ```
 
-## 📄 开源协议
 
-基于 RuoYi-Vue (MIT License)
+  数据看板                         图书检索门户
+  ┌─────────────────┐             ┌─────────────────┐
+  │ 📊 今日借阅  📊 在借   │             │ 📖 图书卡片网格    │
+  │ 📈 借阅趋势图     │             │ ⭐ 评分 + 悬浮预览  │
+  │ 🏆 热门图书TOP10   │             │ 💬 读者评论        │
+  └─────────────────┘             │ 🤖 相关推荐        │
+                                   └─────────────────┘
+
+  氛围控制台                       小书灵助手
+  ┌─────────────────┐             ┌─────────────────┐
+  │ 🎨 主题切换      │             │  🦉 猫头鹰       │
+  │ 🔊 白噪音        │             │  "今天想读什么书" │
+  │ 🦉 助手开关      │             └─────────────────┘
+  └─────────────────┘
+```
+
+---
+
+## 🤝 致谢
+
+- 基于 [RuoYi-Vue 3.8.9](http://ruoyi.vip/) 脚手架搭建
+- 图书数据来源 [Google Books API](https://developers.google.com/books)
+- 图表使用 [ECharts](https://echarts.apache.org/)
+- UI 组件使用 [Element UI](https://element.eleme.io/)
+
+---
+
+<div align="center">
+  <sub>✨ Vibe Coding — 让代码有温度 ✨</sub>
+</div>
