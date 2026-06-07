@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.ruoyi.common.core.domain.entity.Book;
 import com.ruoyi.common.core.domain.entity.BorrowRecord;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.SecurityUtils;
@@ -73,13 +74,36 @@ public class BorrowServiceImpl implements BorrowService
      * @return 结果
      */
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public int borrowBook(BorrowRecord record)
     {
         Integer readerId = record.getReaderId();
         Integer bookId = record.getBookId();
 
-        // 校验读者状态：查询读者是否有逾期未还的借阅记录
+        if (readerId == null || bookId == null)
+        {
+            throw new ServiceException("读者ID和图书ID不能为空");
+        }
+
+        // ========== 1. 行级锁：锁定图书行，防止并发抢书 ==========
+        Book book = bookMapper.selectBookForUpdate(bookId);
+        if (book == null)
+        {
+            throw new ServiceException("图书不存在");
+        }
+        if (book.getStockCount() == null || book.getStockCount() <= 0)
+        {
+            throw new ServiceException("该图书库存不足，暂时无法借阅");
+        }
+
+        // ========== 2. 幂等检查：同一读者不可重复借同一本书 ==========
+        BorrowRecord existing = borrowMapper.selectActiveByReaderAndBook(record);
+        if (existing != null)
+        {
+            throw new ServiceException("您已借阅过该书，不可重复借阅");
+        }
+
+        // ========== 3. 校验读者逾期记录 ==========
         List<BorrowRecord> activeRecords = borrowMapper.selectActiveByReaderId(readerId);
         for (BorrowRecord active : activeRecords)
         {
@@ -89,7 +113,7 @@ public class BorrowServiceImpl implements BorrowService
             }
         }
 
-        // 校验读者借阅数量是否已达上限
+        // ========== 4. 校验借阅上限 ==========
         String maxCountStr = configService.selectConfigByKey("borrow.max_count");
         int maxCount = StringUtils.isNotEmpty(maxCountStr) ? Integer.parseInt(maxCountStr) : 5;
         int currentBorrowingCount = 0;
@@ -105,14 +129,7 @@ public class BorrowServiceImpl implements BorrowService
             throw new ServiceException("读者当前借阅数量已达上限（" + maxCount + "本），无法继续借阅");
         }
 
-        // 校验图书是否有库存（通过查询图书是否已被他人借阅中）
-        BorrowRecord activeBookRecord = borrowMapper.selectActiveByBookId(bookId);
-        if (activeBookRecord != null)
-        {
-            throw new ServiceException("该图书已被借出，暂时无法借阅");
-        }
-
-        // 设置借阅信息
+        // ========== 5. 设置借阅信息 ==========
         Date now = new Date();
         record.setBorrowDate(now);
         record.setStatus("borrowing");
@@ -127,12 +144,19 @@ public class BorrowServiceImpl implements BorrowService
         calendar.add(Calendar.DAY_OF_MONTH, defaultDays);
         record.setDueDate(calendar.getTime());
 
+        // ========== 6. 插入借阅记录 ==========
         int rows = borrowMapper.insertBorrow(record);
-
-        // 减少图书库存
-        if (rows > 0)
+        if (rows <= 0)
         {
-            bookMapper.decrementStock(bookId);
+            throw new ServiceException("借阅记录创建失败");
+        }
+
+        // ========== 7. 乐观锁减库存（校验影响行数） ==========
+        int affected = bookMapper.decrementStock(bookId);
+        if (affected <= 0)
+        {
+            // 库存被耗尽，回滚事务
+            throw new ServiceException("库存不足，借阅失败");
         }
 
         return rows;

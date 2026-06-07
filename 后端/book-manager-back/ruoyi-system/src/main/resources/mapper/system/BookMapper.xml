@@ -139,6 +139,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         </foreach>
     </delete>
 
+    <select id="selectBookForUpdate" parameterType="Integer" resultMap="BookResult">
+        <include refid="selectBookVo"/>
+        where b.book_id = #{bookId}
+        for update
+    </select>
+
     <update id="decrementStock" parameterType="Integer">
         update tb_book
         set stock_count = stock_count - 1

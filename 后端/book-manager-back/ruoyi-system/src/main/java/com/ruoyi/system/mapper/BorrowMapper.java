@@ -32,6 +32,11 @@ public interface BorrowMapper
 
     public int updateBorrow(BorrowRecord record);
 
+    /**
+     * 查询读者是否已借阅某本书（幂等检查）
+     */
+    public BorrowRecord selectActiveByReaderAndBook(com.ruoyi.common.core.domain.entity.BorrowRecord record);
+
     // ========== 推荐系统查询 ==========
 
     /**

@@ -194,6 +194,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         limit 1
     </select>
 
+    <select id="selectActiveByReaderAndBook" parameterType="BorrowRecord" resultMap="BorrowRecordResult">
+        <include refid="selectBorrowVo"/>
+        where br.reader_id = #{readerId}
+          and br.book_id = #{bookId}
+          and br.status in ('borrowing', 'overdue')
+        limit 1
+    </select>
+
     <insert id="insertBorrow" parameterType="BorrowRecord" useGeneratedKeys="true" keyProperty="borrowId">
         insert into tb_borrow_record(
             <if test="readerId != null">reader_id,</if>

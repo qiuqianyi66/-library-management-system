@@ -69,6 +69,11 @@ public interface BookMapper
     public int decrementStock(Integer bookId);
 
     /**
+     * 带行级锁查询图书库存（并发控制）
+     */
+    public com.ruoyi.common.core.domain.entity.Book selectBookForUpdate(Integer bookId);
+
+    /**
      * 增加图书库存（还书时调用）
      *
      * @param bookId 图书ID

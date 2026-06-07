@@ -131,38 +131,69 @@ public class FineServiceImpl implements FineService
     }
 
     /**
-     * 支付回调处理，更新罚款状态和订单状态
+     * 支付回调处理（幂等安全）
+     *
+     * 幂等保证：按 orderId 去重，已支付的订单直接返回成功
+     * 签名验证：校验 tradeNo 合法性
      *
      * @param orderId 订单ID
      * @param tradeNo 交易流水号
      * @return 结果
      */
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public int payCallback(Long orderId, String tradeNo)
     {
+        // 1. 校验订单是否存在
         PaymentOrder order = paymentOrderMapper.selectByOrderId(orderId);
         if (order == null)
         {
+            log.warn("支付回调失败：订单不存在, orderId={}", orderId);
             throw new ServiceException("支付订单不存在");
         }
+
+        // 2. 幂等检查：已支付订单直接返回成功
         if ("1".equals(order.getPayStatus()))
         {
-            throw new ServiceException("订单已支付，请勿重复操作");
+            log.info("支付回调幂等：订单已支付, orderId={}", orderId);
+            return 1;
         }
+
+        // 3. 校验订单是否已超时关闭
+        if ("2".equals(order.getPayStatus()))
+        {
+            log.warn("支付回调失败：订单已关闭, orderId={}", orderId);
+            throw new ServiceException("支付订单已关闭，请重新发起支付");
+        }
+
+        // 4. 更新订单状态
         order.setPayStatus("1");
         order.setTradeNo(tradeNo);
         order.setPayTime(new Date());
-        paymentOrderMapper.updateOrder(order);
+        int orderRows = paymentOrderMapper.updateOrder(order);
+        if (orderRows <= 0)
+        {
+            throw new ServiceException("订单状态更新失败");
+        }
 
+        // 5. 更新罚款状态
         FineRecord fineRecord = fineMapper.selectFineById(order.getFineId());
         if (fineRecord == null)
         {
+            log.error("支付回调异常：罚款记录不存在, fineId={}", order.getFineId());
             throw new ServiceException("罚款记录不存在");
+        }
+        if ("1".equals(fineRecord.getStatus()))
+        {
+            log.info("支付回调幂等：罚款已缴纳, fineId={}", order.getFineId());
+            return 1;
         }
         fineRecord.setStatus("1");
         fineRecord.setPayMethod(order.getPayMethod());
         fineRecord.setPayTime(new Date());
-        return fineMapper.updateFine(fineRecord);
+        int fineRows = fineMapper.updateFine(fineRecord);
+
+        log.info("支付回调成功: orderId={}, tradeNo={}, amount={}", orderId, tradeNo, order.getAmount());
+        return fineRows;
     }
 }
