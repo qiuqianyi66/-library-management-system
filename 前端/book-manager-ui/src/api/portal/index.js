@@ -31,6 +31,13 @@ export function portalRenew(borrowId) {
   })
 }
 
+export function portalBorrow(bookId) {
+  return request({
+    url: '/portal/borrowBook/' + bookId,
+    method: 'post'
+  })
+}
+
 export function portalPay(data) {
   return request({
     url: '/bookmanager/fine/pay',

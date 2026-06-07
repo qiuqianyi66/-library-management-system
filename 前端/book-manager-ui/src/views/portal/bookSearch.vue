@@ -48,6 +48,13 @@
             <div class="book-stock">
               <el-tag v-if="book.stockCount > 0" type="success" size="small">可借</el-tag>
               <el-tag v-else type="info" size="small">已借完</el-tag>
+              <el-button
+                v-if="book.stockCount > 0"
+                size="mini"
+                type="text"
+                class="quick-borrow-btn"
+                @click.stop="quickBorrow(book)"
+              >借阅</el-button>
             </div>
           </div>
         </el-card>
@@ -169,6 +176,9 @@
       </el-tabs>
 
       <div slot="footer" class="dialog-footer">
+        <el-button v-if="form.stockCount > 0" type="primary" icon="el-icon-reading" @click="handleBorrow" :loading="borrowing">
+          {{ borrowing ? '借阅中…' : '📚 借阅此书' }}
+        </el-button>
         <el-button @click="cancel">关 闭</el-button>
       </div>
     </el-dialog>
@@ -176,7 +186,7 @@
 </template>
 
 <script>
-import { searchBooks } from "@/api/portal/index";
+import { searchBooks, portalBorrow } from "@/api/portal/index";
 import { getBookReviews, submitReview } from "@/api/portal/review";
 import { recommendByBook } from "@/api/portal/recommend";
 import BookRating from "@/components/BookRating";
@@ -213,7 +223,8 @@ export default {
       previewVisible: false,
       previewBook: {},
       previewPosition: { top: '0', left: '0' },
-      previewTimer: null
+      previewTimer: null,
+      borrowing: false
     };
   },
   created() {
@@ -284,6 +295,33 @@ export default {
         this.$message.success('评论提交成功！')
         this.newReview.content = ''
         this.loadReviews(this.form.bookId)
+      })
+    },
+    /** 快速借书（从卡片直接借阅） */
+    quickBorrow(book) {
+      this.$modal.confirm('确认借阅《' + book.bookName + '》？').then(() => {
+        portalBorrow(book.bookId).then(() => {
+          this.$vibe.success('借阅成功！')
+          this.getList()
+        }).catch(err => {
+          this.$vibe.warning(err?.msg || '借阅失败')
+        })
+      }).catch(() => {})
+    },
+    /** 自助借书 */
+    handleBorrow() {
+      if (!this.form.bookId) return
+      this.borrowing = true
+      portalBorrow(this.form.bookId).then(() => {
+        this.$vibe.success('借阅成功！请按时归还 📚')
+        this.borrowing = false
+        this.open = false
+        // 刷新图书列表更新库存
+        this.getList()
+      }).catch(err => {
+        this.borrowing = false
+        const msg = err?.msg || '借阅失败，请检查是否已达上限或有逾期未还'
+        this.$vibe.warning(msg)
       })
     },
     /** 悬浮预览 */
@@ -369,6 +407,18 @@ export default {
 .book-stock {
   margin-top: 6px;
   text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+.quick-borrow-btn {
+  font-size: 12px;
+  padding: 0 4px;
+  color: var(--vibe-primary, #2563eb) !important;
+}
+.quick-borrow-btn:hover {
+  opacity: 0.7;
 }
 .detail-cover {
   min-height: 150px;

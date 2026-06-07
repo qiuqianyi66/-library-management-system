@@ -87,6 +87,20 @@ public class PortalController extends BaseController
     }
 
     /**
+     * 自助借书
+     */
+    @PostMapping("/borrowBook/{bookId}")
+    public AjaxResult borrowBook(@PathVariable("bookId") Integer bookId)
+    {
+        Long userId = getUserId();
+        BorrowRecord record = new BorrowRecord();
+        record.setReaderId(userId.intValue());
+        record.setBookId(bookId);
+        record.setCreateBy(getUsername());
+        return toAjax(borrowService.borrowBook(record));
+    }
+
+    /**
      * 自助续借
      */
     @PostMapping("/renewBook/{borrowId}")
