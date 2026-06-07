@@ -4,8 +4,10 @@
 
 <script>
 import * as echarts from 'echarts'
-require('echarts/theme/macarons') // echarts theme
+require('echarts/theme/macarons')
 import resize from './mixins/resize'
+import { getStats } from '@/api/dashboard'
+import request from '@/utils/request'
 
 const animationDuration = 3000
 
@@ -34,6 +36,7 @@ export default {
     this.$nextTick(() => {
       this.initChart()
     })
+    this.fetchData()
   },
   beforeDestroy() {
     if (!this.chart) {
@@ -43,70 +46,59 @@ export default {
     this.chart = null
   },
   methods: {
+    fetchData() {
+      // 获取各类型图书分布
+      request({
+        url: '/bookmanager/book/list',
+        method: 'get',
+        params: { pageSize: 999 }
+      }).then(res => {
+        const books = res.rows || []
+        const typeMap = {}
+        books.forEach(b => {
+          const t = b.type || '未分类'
+          typeMap[t] = (typeMap[t] || 0) + 1
+        })
+        const types = Object.keys(typeMap)
+        const counts = types.map(t => typeMap[t])
+        this.setOptions(types, counts)
+      }).catch(() => {
+        this.setOptions(['文学', '科技', '教育', '社科', '艺术'], [0, 0, 0, 0, 0])
+      })
+    },
     initChart() {
       this.chart = echarts.init(this.$el, 'macarons')
-
+    },
+    setOptions(types, counts) {
+      if (!types || !types.length) {
+        return
+      }
       this.chart.setOption({
         tooltip: {
           trigger: 'axis',
-          axisPointer: { // 坐标轴指示器，坐标轴触发有效
-            type: 'shadow' // 默认为直线，可选为：'line' | 'shadow'
-          }
+          axisPointer: { type: 'shadow' }
         },
         radar: {
           radius: '66%',
-          center: ['50%', '42%'],
-          splitNumber: 8,
-          splitArea: {
-            areaStyle: {
-              color: 'rgba(127,95,132,.3)',
-              opacity: 1,
-              shadowBlur: 45,
-              shadowColor: 'rgba(0,0,0,.5)',
-              shadowOffsetX: 0,
-              shadowOffsetY: 15
-            }
-          },
-          indicator: [
-            { name: 'Sales', max: 10000 },
-            { name: 'Administration', max: 20000 },
-            { name: 'Information Techology', max: 20000 },
-            { name: 'Customer Support', max: 20000 },
-            { name: 'Development', max: 20000 },
-            { name: 'Marketing', max: 20000 }
-          ]
-        },
-        legend: {
-          left: 'center',
-          bottom: '10',
-          data: ['Allocated Budget', 'Expected Spending', 'Actual Spending']
+          center: ['50%', '50%'],
+          splitNumber: 4,
+          indicator: types.map(t => ({ name: t, max: Math.max(...counts, 1) * 1.5 })),
+          shape: 'circle'
         },
         series: [{
           type: 'radar',
-          symbolSize: 0,
+          data: [{ value: counts, name: '图书数量' }],
+          symbolSize: 6,
           areaStyle: {
-            normal: {
-              shadowBlur: 13,
-              shadowColor: 'rgba(0,0,0,.2)',
-              shadowOffsetX: 0,
-              shadowOffsetY: 10,
-              opacity: 1
-            }
+            color: 'rgba(37, 99, 235, 0.3)'
           },
-          data: [
-            {
-              value: [5000, 7000, 12000, 11000, 15000, 14000],
-              name: 'Allocated Budget'
-            },
-            {
-              value: [4000, 9000, 15000, 15000, 13000, 11000],
-              name: 'Expected Spending'
-            },
-            {
-              value: [5500, 11000, 12000, 15000, 12000, 12000],
-              name: 'Actual Spending'
-            }
-          ],
+          lineStyle: {
+            color: '#2563eb',
+            width: 2
+          },
+          itemStyle: {
+            color: '#2563eb'
+          },
           animationDuration: animationDuration
         }]
       })

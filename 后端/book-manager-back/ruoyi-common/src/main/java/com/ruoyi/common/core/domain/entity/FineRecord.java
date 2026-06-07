@@ -38,6 +38,9 @@ public class FineRecord extends BaseEntity
     @Excel(name = "支付方式")
     private String payMethod;
 
+    /** 读者姓名（非数据库字段） */
+    private String readerName;
+
     /** 支付时间 */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date payTime;
@@ -99,6 +102,16 @@ public class FineRecord extends BaseEntity
     public void setStatus(String status)
     {
         this.status = status;
+    }
+
+    public String getReaderName()
+    {
+        return readerName;
+    }
+
+    public void setReaderName(String readerName)
+    {
+        this.readerName = readerName;
     }
 
     public String getPayMethod()

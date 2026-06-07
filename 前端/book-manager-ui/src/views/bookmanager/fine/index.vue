@@ -9,8 +9,8 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="罚款状态" prop="fineStatus">
-        <el-select v-model="queryParams.fineStatus" placeholder="请选择罚款状态" clearable>
+      <el-form-item label="罚款状态" prop="status">
+        <el-select v-model="queryParams.status" placeholder="请选择罚款状态" clearable>
           <el-option label="未缴纳" value="0" />
           <el-option label="已缴纳" value="1" />
         </el-select>
@@ -85,6 +85,25 @@
       :limit.sync="queryParams.pageSize"
       @pagination="getList"
     />
+
+    <!-- 支付弹窗 -->
+    <el-dialog title="支付罚款" :visible.sync="payDialogVisible" width="400px" append-to-body>
+      <el-form ref="payForm" :model="payForm" label-width="100px">
+        <el-form-item label="罚款金额">
+          <span style="color: #ff0000; font-size: 18px;">¥{{ payForm.amount }}</span>
+        </el-form-item>
+        <el-form-item label="支付方式" prop="payMethod">
+          <el-select v-model="payForm.payMethod" placeholder="请选择支付方式">
+            <el-option label="微信支付" value="wechat" />
+            <el-option label="支付宝" value="alipay" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button @click="payDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="submitPay">确 定 支 付</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -104,8 +123,14 @@ export default {
         pageNum: 1,
         pageSize: 10,
         readerName: null,
-        fineStatus: null,
+        status: null,
         payMethod: null
+      },
+      payDialogVisible: false,
+      payForm: {
+        fineId: null,
+        amount: 0,
+        payMethod: 'wechat'
       }
     };
   },
@@ -134,11 +159,21 @@ export default {
     },
     /** 支付按钮操作 */
     handlePay(row) {
-      this.$modal.confirm('确认支付 ¥' + row.amount + ' 罚款？').then(() => {
-        payFine({ fineId: row.fineId }).then(response => {
-          this.$modal.msgSuccess("支付成功");
-          this.getList();
-        });
+      this.payForm.fineId = row.fineId;
+      this.payForm.amount = row.amount;
+      this.payForm.payMethod = 'wechat';
+      this.payDialogVisible = true;
+    },
+    /** 提交支付 */
+    submitPay() {
+      if (!this.payForm.payMethod) {
+        this.$modal.msgError("请选择支付方式");
+        return;
+      }
+      payFine({ fineId: this.payForm.fineId, payMethod: this.payForm.payMethod }).then(response => {
+        this.$modal.msgSuccess("支付成功");
+        this.payDialogVisible = false;
+        this.getList();
       }).catch(() => {
       });
     }

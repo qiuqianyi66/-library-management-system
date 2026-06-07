@@ -10,8 +10,8 @@
             @keyup.enter.native="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="分类" prop="category">
-          <el-select v-model="queryParams.category" placeholder="请选择分类" clearable>
+        <el-form-item label="分类" prop="type">
+          <el-select v-model="queryParams.type" placeholder="请选择分类" clearable>
             <el-option
               v-for="dict in dict.type.book_type_list"
               :key="dict.value"
@@ -37,9 +37,9 @@
           <div class="book-info">
             <div class="book-name">{{ book.bookName }}</div>
             <div class="book-author">作者：{{ book.author }}</div>
-            <div class="book-publisher">出版社：{{ book.publisher }}</div>
+            <div class="book-publisher">出版社：{{ book.press }}</div>
             <div class="book-stock">
-              <el-tag v-if="book.stock > 0" type="success" size="small">可借</el-tag>
+              <el-tag v-if="book.stockCount > 0" type="success" size="small">可借</el-tag>
               <el-tag v-else type="info" size="small">已借完</el-tag>
             </div>
           </div>
@@ -74,7 +74,7 @@
               <span>{{ form.author }}</span>
             </el-form-item>
             <el-form-item label="出版社">
-              <span>{{ form.publisher }}</span>
+              <span>{{ form.press }}</span>
             </el-form-item>
             <el-form-item label="ISBN">
               <span>{{ form.isbn }}</span>
@@ -83,7 +83,7 @@
               <span>{{ form.categoryName }}</span>
             </el-form-item>
             <el-form-item label="库存">
-              <el-tag v-if="form.stock > 0" type="success" size="small">{{ form.stock }} 册可借</el-tag>
+              <el-tag v-if="form.stockCount > 0" type="success" size="small">{{ form.stockCount }} 册可借</el-tag>
               <el-tag v-else type="info" size="small">暂无库存</el-tag>
             </el-form-item>
             <el-form-item label="简介">
@@ -114,7 +114,7 @@ export default {
         pageNum: 1,
         pageSize: 8,
         bookName: null,
-        category: null
+        type: null
       },
       title: "",
       open: false,
@@ -148,10 +148,10 @@ export default {
       this.form = {
         bookName: row.bookName,
         author: row.author,
-        publisher: row.publisher,
+        press: row.press,
         isbn: row.isbn,
         categoryName: row.categoryName,
-        stock: row.stock,
+        stockCount: row.stockCount,
         description: row.description,
         coverUrl: row.coverUrl
       };

@@ -61,6 +61,22 @@ public interface BookMapper
     public int deleteBookByIds(Long[] bookIds);
 
     /**
+     * 减少图书库存（借书时调用）
+     *
+     * @param bookId 图书ID
+     * @return 结果
+     */
+    public int decrementStock(Integer bookId);
+
+    /**
+     * 增加图书库存（还书时调用）
+     *
+     * @param bookId 图书ID
+     * @return 结果
+     */
+    public int incrementStock(Integer bookId);
+
+    /**
      * 校验图书名称是否唯一
      *
      * @param bookName 图书名称

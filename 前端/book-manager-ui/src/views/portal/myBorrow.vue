@@ -26,7 +26,7 @@
             type="text"
             icon="el-icon-refresh"
             @click="handleRenew(scope.row)"
-            v-if="scope.row.status === '1' && scope.row.renewCount < 2"
+            v-if="scope.row.status === '1' && scope.row.renewCount < maxRenewCount"
           >续借</el-button>
           <el-button
             size="mini"
@@ -75,6 +75,7 @@
 </template>
 
 <script>
+import { getConfigKey } from "@/api/system/config";
 import { myBorrow, portalRenew } from "@/api/portal/index";
 
 export default {
@@ -91,11 +92,17 @@ export default {
       },
       title: "",
       open: false,
-      form: {}
+      form: {},
+      maxRenewCount: 2
     };
   },
   created() {
     this.getList();
+    getConfigKey('borrow.renew_max_count').then(res => {
+      if (res.data) {
+        this.maxRenewCount = parseInt(res.data);
+      }
+    });
   },
   methods: {
     getList() {

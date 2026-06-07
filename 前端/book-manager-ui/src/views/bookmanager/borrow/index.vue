@@ -104,7 +104,7 @@
             size="mini"
             type="text"
             icon="el-icon-refresh"
-            v-if="scope.row.status === '0' && scope.row.renewCount < 2"
+            v-if="scope.row.status === '0' && scope.row.renewCount < maxRenewCount"
             @click="handleRenew(scope.row)"
           >续借</el-button>
         </template>
@@ -168,7 +168,7 @@
         </el-form-item>
         <el-form-item label="图书信息" v-if="selectedBook.bookName">
           <el-tag>书名：《{{ selectedBook.bookName }}》</el-tag>
-          <el-tag :type="selectedBook.stock > 0 ? 'success' : 'danger'" style="margin-left: 10px">库存：{{ selectedBook.stock }}</el-tag>
+          <el-tag :type="selectedBook.stockCount > 0 ? 'success' : 'danger'" style="margin-left: 10px">库存：{{ selectedBook.stockCount }}</el-tag>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -217,6 +217,7 @@
 <script>
 import { listBorrow, getBorrow, borrowBook, returnBook, renewBook } from "@/api/bookmanager/borrow";
 import { listReader } from "@/api/bookmanager/reader";
+import { getConfigKey } from "@/api/system/config";
 import { listBook } from "@/api/bookmanager/book";
 
 export default {
@@ -240,8 +241,10 @@ export default {
         readerName: null,
         bookName: null,
         status: null,
-        beginDate: null,
-        endDate: null
+        params: {
+          beginTime: null,
+          endTime: null
+        }
       },
       borrowOpen: false,
       borrowFormData: {
@@ -265,21 +268,28 @@ export default {
       detailOpen: false,
       detailForm: {},
       returnOpen: false,
-      returnForm: {}
+      returnForm: {},
+      maxRenewCount: 2
     };
   },
   created() {
     this.getList();
+    // 从后端加载续借上限配置
+    getConfigKey('borrow.renew_max_count').then(res => {
+      if (res.data) {
+        this.maxRenewCount = parseInt(res.data);
+      }
+    });
   },
   methods: {
     getList() {
       this.loading = true;
       if (this.dateRange && this.dateRange.length === 2) {
-        this.queryParams.beginDate = this.dateRange[0];
-        this.queryParams.endDate = this.dateRange[1];
+        this.queryParams.params.beginTime = this.dateRange[0];
+        this.queryParams.params.endTime = this.dateRange[1];
       } else {
-        this.queryParams.beginDate = null;
-        this.queryParams.endDate = null;
+        this.queryParams.params.beginTime = null;
+        this.queryParams.params.endTime = null;
       }
       listBorrow(this.queryParams).then(response => {
         this.borrowList = response.rows;

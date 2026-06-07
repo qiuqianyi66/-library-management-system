@@ -53,10 +53,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                 AND b.status = #{status}
             </if>
             <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
-                AND date_format(b.create_time,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')
+                AND b.create_time &gt;= #{params.beginTime}
             </if>
             <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
-                AND date_format(b.create_time,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')
+                AND b.create_time &lt;= #{params.endTime}
             </if>
         </where>
     </select>
@@ -138,4 +138,18 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{bookId}
         </foreach>
     </delete>
+
+    <update id="decrementStock" parameterType="Integer">
+        update tb_book
+        set stock_count = stock_count - 1
+        where book_id = #{bookId}
+          and stock_count > 0
+    </update>
+
+    <update id="incrementStock" parameterType="Integer">
+        update tb_book
+        set stock_count = stock_count + 1
+        where book_id = #{bookId}
+    </update>
+
 </mapper>

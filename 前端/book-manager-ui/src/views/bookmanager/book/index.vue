@@ -95,9 +95,9 @@
         </template>
       </el-table-column>
       <el-table-column label="作者" align="center" prop="author" />
-      <el-table-column label="出版社" align="center" prop="publisher" show-overflow-tooltip />
+      <el-table-column label="出版社" align="center" prop="press" show-overflow-tooltip />
       <el-table-column label="价格" align="center" prop="price" />
-      <el-table-column label="库存" align="center" prop="stock" />
+      <el-table-column label="库存" align="center" prop="stockCount" />
       <el-table-column label="状态" align="center" prop="status">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.sys_normal_disable" :value="scope.row.status"/>
@@ -156,8 +156,8 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="出版社" prop="publisher">
-              <el-input v-model="form.publisher" placeholder="请输入出版社" />
+            <el-form-item label="出版社" prop="press">
+              <el-input v-model="form.press" placeholder="请输入出版社" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -182,8 +182,8 @@
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="库存数量" prop="stock">
-              <el-input-number v-model="form.stock" :min="0" placeholder="请输入库存数量" style="width: 100%" />
+            <el-form-item label="库存数量" prop="stockCount">
+              <el-input-number v-model="form.stockCount" :min="0" placeholder="请输入库存数量" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -314,10 +314,10 @@ export default {
         bookName: null,
         isbn: null,
         author: null,
-        publisher: null,
+        press: null,
         type: null,
         price: null,
-        stock: null,
+        stockCount: null,
         shelfLocation: null,
         publishDate: null,
         coverImage: null,

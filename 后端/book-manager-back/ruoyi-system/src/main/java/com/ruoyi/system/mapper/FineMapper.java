@@ -29,6 +29,13 @@ public interface FineMapper
     public FineRecord selectFineById(Long fineId);
 
     /**
+     * 查询本月已缴纳罚款总额
+     *
+     * @return 本月罚款收入
+     */
+    public java.math.BigDecimal selectMonthlyFineIncome();
+
+    /**
      * 通过读者ID查询罚款记录
      *
      * @param readerId 读者ID

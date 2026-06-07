@@ -23,11 +23,54 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="bookName"    column="book_name"     />
     </resultMap>
 
+    <!-- 仪表盘：今日借书数量 -->
+    <select id="selectTodayBorrowCount" resultType="int">
+        select count(*) from tb_borrow_record
+        where to_days(borrow_date) = to_days(now())
+    </select>
+
+    <!-- 仪表盘：今日还书数量 -->
+    <select id="selectTodayReturnCount" resultType="int">
+        select count(*) from tb_borrow_record
+        where return_date is not null and to_days(return_date) = to_days(now())
+    </select>
+
+    <!-- 仪表盘：当前在借数量 -->
+    <select id="selectCurrentBorrowCount" resultType="int">
+        select count(*) from tb_borrow_record
+        where status = 'borrowing'
+    </select>
+
+    <!-- 仪表盘：当前逾期数量 -->
+    <select id="selectOverdueCount" resultType="int">
+        select count(*) from tb_borrow_record
+        where status = 'overdue'
+    </select>
+
+    <!-- 仪表盘：近N天借阅趋势 -->
+    <select id="selectBorrowTrendByDays" parameterType="int" resultType="java.util.Map">
+        select date(borrow_date) as date, count(*) as count
+        from tb_borrow_record
+        where borrow_date >= date_sub(curdate(), interval #{days} day)
+        group by date(borrow_date)
+        order by date(borrow_date) asc
+    </select>
+
+    <!-- 仪表盘：热门图书TOP10 -->
+    <select id="selectHotBooksTop10" resultType="java.util.Map">
+        select b.book_id, b.book_name, b.author, b.press, count(br.book_id) as borrow_count
+        from tb_borrow_record br
+        left join tb_book b on br.book_id = b.book_id
+        group by br.book_id, b.book_name, b.author, b.press
+        order by borrow_count desc
+        limit 10
+    </select>
+
     <sql id="selectBorrowVo">
         select br.borrow_id, br.reader_id, br.book_id, br.borrow_date, br.due_date,
                br.return_date, br.status, br.renew_count, br.fine_amount,
                br.create_by, br.create_time, br.update_by, br.update_time, br.remark,
-               r.name as reader_name, b.name as book_name
+               r.name as reader_name, b.book_name as book_name
         from tb_borrow_record br
         left join tb_reader r on br.reader_id = r.reader_id
         left join tb_book b on br.book_id = b.book_id
@@ -37,7 +80,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         select br.borrow_id, br.reader_id, br.book_id, br.borrow_date, br.due_date,
                br.return_date, br.status, br.renew_count, br.fine_amount,
                br.create_by, br.create_time, br.update_by, br.update_time, br.remark,
-               r.name as reader_name, b.name as book_name
+               r.name as reader_name, b.book_name as book_name
         from tb_borrow_record br
         left join tb_reader r on br.reader_id = r.reader_id
         left join tb_book b on br.book_id = b.book_id
@@ -58,13 +101,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                 AND r.name like concat('%', #{readerName}, '%')
             </if>
             <if test="bookName != null and bookName != ''">
-                AND b.name like concat('%', #{bookName}, '%')
+                AND b.book_name like concat('%', #{bookName}, '%')
             </if>
             <if test="params.beginTime != null and params.beginTime != ''">
-                AND date_format(br.borrow_date,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')
+                AND br.borrow_date &gt;= #{params.beginTime}
             </if>
             <if test="params.endTime != null and params.endTime != ''">
-                AND date_format(br.borrow_date,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')
+                AND br.borrow_date &lt;= #{params.endTime}
             </if>
         </where>
         order by br.borrow_date desc

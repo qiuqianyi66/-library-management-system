@@ -11,8 +11,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.ruoyi.common.core.domain.entity.BorrowRecord;
 import com.ruoyi.common.exception.ServiceException;
+import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.common.core.domain.entity.FineRecord;
+import com.ruoyi.system.mapper.BookMapper;
 import com.ruoyi.system.mapper.BorrowMapper;
+import com.ruoyi.system.mapper.FineMapper;
 import com.ruoyi.system.service.BorrowService;
 import com.ruoyi.system.service.ConfigService;
 
@@ -28,6 +32,12 @@ public class BorrowServiceImpl implements BorrowService
 
     @Autowired
     private BorrowMapper borrowMapper;
+
+    @Autowired
+    private BookMapper bookMapper;
+
+    @Autowired
+    private FineMapper fineMapper;
 
     @Autowired
     private ConfigService configService;
@@ -117,7 +127,15 @@ public class BorrowServiceImpl implements BorrowService
         calendar.add(Calendar.DAY_OF_MONTH, defaultDays);
         record.setDueDate(calendar.getTime());
 
-        return borrowMapper.insertBorrow(record);
+        int rows = borrowMapper.insertBorrow(record);
+
+        // 减少图书库存
+        if (rows > 0)
+        {
+            bookMapper.decrementStock(bookId);
+        }
+
+        return rows;
     }
 
     /**
@@ -162,6 +180,25 @@ public class BorrowServiceImpl implements BorrowService
         }
 
         int rows = borrowMapper.updateBorrow(record);
+
+        // 如果逾期，创建罚款记录
+        if (rows > 0 && record.getFineAmount() != null && record.getFineAmount().compareTo(BigDecimal.ZERO) > 0)
+        {
+            FineRecord fineRecord = new FineRecord();
+            fineRecord.setBorrowId(borrowId);
+            fineRecord.setReaderId(record.getReaderId());
+            fineRecord.setAmount(record.getFineAmount());
+            fineRecord.setStatus("0");
+            fineRecord.setCreateBy(SecurityUtils.getUsername());
+            fineMapper.insertFine(fineRecord);
+        }
+
+        // 归还图书，增加库存
+        if (rows > 0)
+        {
+            bookMapper.incrementStock(record.getBookId());
+        }
+
         return rows;
     }
 

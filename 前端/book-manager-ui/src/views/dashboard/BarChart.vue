@@ -57,8 +57,10 @@ export default {
       this.chart = echarts.init(this.$el, 'macarons')
     },
     setOptions(data) {
-      const days = data.map(item => item.date || item.day)
-      const amounts = data.map(item => item.amount)
+      // data 可能是 { monthlyFineIncome: 123 } 对象，转为单条柱状图
+      const isObject = !Array.isArray(data)
+      const days = isObject ? ['本月'] : data.map(item => item.date || item.day)
+      const amounts = isObject ? [data.monthlyFineIncome || 0] : data.map(item => item.amount)
       this.chart.setOption({
         tooltip: {
           trigger: 'axis',

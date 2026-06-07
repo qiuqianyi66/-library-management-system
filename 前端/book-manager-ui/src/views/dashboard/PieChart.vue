@@ -58,7 +58,7 @@ export default {
       if (!data.length) {
         return
       }
-      const names = data.map(item => item.name)
+      const names = data.map(item => item.book_name)
       this.chart.setOption({
         tooltip: {
           trigger: 'item',

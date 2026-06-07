@@ -12,8 +12,10 @@ import com.ruoyi.common.core.domain.entity.FineRecord;
 import com.ruoyi.common.core.domain.entity.PaymentOrder;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.uuid.IdUtils;
+import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.system.mapper.FineMapper;
 import com.ruoyi.system.mapper.PaymentOrderMapper;
+import com.ruoyi.system.service.ConfigService;
 import com.ruoyi.system.service.FineService;
 
 /**
@@ -26,13 +28,14 @@ public class FineServiceImpl implements FineService
 {
     private static final Logger log = LoggerFactory.getLogger(FineServiceImpl.class);
 
-    private static final BigDecimal DAILY_FINE_AMOUNT = new BigDecimal("0.50");
-
     @Autowired
     private FineMapper fineMapper;
 
     @Autowired
     private PaymentOrderMapper paymentOrderMapper;
+
+    @Autowired
+    private ConfigService configService;
 
     @Override
     public List<FineRecord> selectFineList(FineRecord fineRecord)
@@ -83,7 +86,11 @@ public class FineServiceImpl implements FineService
         {
             throw new ServiceException("逾期天数必须大于0");
         }
-        BigDecimal amount = DAILY_FINE_AMOUNT.multiply(new BigDecimal(overdueDays));
+        String finePerDayStr = configService.selectConfigByKey("fine.per_day");
+        BigDecimal finePerDay = BigDecimal.valueOf(
+                StringUtils.isNotEmpty(finePerDayStr) ? Double.parseDouble(finePerDayStr) : 0.5
+        );
+        BigDecimal amount = finePerDay.multiply(new BigDecimal(overdueDays));
         FineRecord fineRecord = new FineRecord();
         fineRecord.setBorrowId(borrowId);
         fineRecord.setReaderId(readerId);

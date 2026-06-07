@@ -8,9 +8,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.ruoyi.common.constant.UserConstants;
 import com.ruoyi.common.core.domain.entity.Book;
+import com.ruoyi.common.core.domain.entity.BorrowRecord;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.system.mapper.BookMapper;
+import com.ruoyi.system.mapper.BorrowMapper;
 import com.ruoyi.system.service.BookService;
 
 /**
@@ -25,6 +27,9 @@ public class BookServiceImpl implements BookService
 
     @Autowired
     private BookMapper bookMapper;
+
+    @Autowired
+    private BorrowMapper borrowMapper;
 
     /**
      * 根据条件分页查询图书列表
@@ -151,6 +156,13 @@ public class BookServiceImpl implements BookService
         for (Long bookId : bookIds)
         {
             checkBookAllowed(new Book(bookId));
+            // 检查是否有未还借阅记录
+            BorrowRecord activeBorrow = borrowMapper.selectActiveByBookId(bookId.intValue());
+            if (activeBorrow != null)
+            {
+                throw new ServiceException("图书 '" + bookMapper.selectBookById(bookId).getBookName()
+                        + "' 存在未还借阅记录，无法删除");
+            }
         }
         return bookMapper.deleteBookByIds(bookIds);
     }

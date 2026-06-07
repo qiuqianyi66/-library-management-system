@@ -16,12 +16,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="createTime" column="create_time"  />
         <result property="updateBy"   column="update_by"    />
         <result property="updateTime" column="update_time"  />
+        <result property="readerName" column="reader_name" />
         <result property="remark"     column="remark"       />
     </resultMap>
 
     <sql id="selectFineVo">
-        select f.fine_id, f.borrow_id, f.reader_id, f.amount, f.status, f.pay_method, f.pay_time, f.create_by, f.create_time, f.update_by, f.update_time, f.remark
+        select f.fine_id, f.borrow_id, f.reader_id, f.amount, f.status, f.pay_method, f.pay_time, f.create_by, f.create_time, f.update_by, f.update_time, f.remark,
+               r.name as reader_name
         from tb_fine_record f
+        left join tb_reader r on f.reader_id = r.reader_id
     </sql>
 
     <select id="selectFineList" parameterType="FineRecord" resultMap="FineRecordResult">
@@ -36,11 +39,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="status != null and status != ''">
                 AND f.status = #{status}
             </if>
+            <if test="readerName != null and readerName != ''">
+                AND r.name like concat('%', #{readerName}, '%')
+            </if>
             <if test="params.beginTime != null and params.beginTime != ''">
-                AND date_format(f.create_time,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')
+                AND f.create_time &gt;= #{params.beginTime}
             </if>
             <if test="params.endTime != null and params.endTime != ''">
-                AND date_format(f.create_time,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')
+                AND f.create_time &lt;= #{params.endTime}
             </if>
         </where>
     </select>
@@ -48,6 +54,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectFineById" parameterType="Long" resultMap="FineRecordResult">
         <include refid="selectFineVo"/>
         where f.fine_id = #{fineId}
+    </select>
+
+    <!-- 仪表盘：本月罚款收入 -->
+    <select id="selectMonthlyFineIncome" resultType="java.math.BigDecimal">
+        select coalesce(sum(amount), 0)
+        from tb_fine_record
+        where status = '1'
+          and pay_time >= date_format(now(), '%Y-%m-01')
     </select>
 
     <select id="selectFineByReaderId" parameterType="Integer" resultMap="FineRecordResult">

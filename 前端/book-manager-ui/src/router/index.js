@@ -59,7 +59,21 @@ export const constantRoutes = [
   {
     path: '',
     component: Layout,
-    redirect: '/bookmanager/reader'
+    redirect: '/dashboard'
+  },
+  {
+    path: '/dashboard',
+    component: Layout,
+    hidden: false,
+    meta: { title: '数据看板', icon: 'dashboard' },
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/dashboard/index'),
+        name: 'Dashboard',
+        meta: { title: '数据看板', icon: 'dashboard' }
+      }
+    ]
   }
 ]
 
