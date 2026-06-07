@@ -185,7 +185,7 @@ CREATE TABLE `tb_borrow_record` (
   `borrow_date` datetime NOT NULL COMMENT '借阅日期',
   `due_date` datetime NOT NULL COMMENT '应还日期',
   `return_date` datetime DEFAULT NULL COMMENT '实际归还日期',
-  `status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT '0' COMMENT '状态（0借阅中 1已归还 2逾期未还）',
+  `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'borrowing' COMMENT '状态（borrowing借阅中 returned已归还 overdue逾期）',
   `renew_count` int DEFAULT '0' COMMENT '续借次数',
   `fine_amount` decimal(10,2) DEFAULT '0.00' COMMENT '罚款金额',
   `create_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT '' COMMENT '创建者',
