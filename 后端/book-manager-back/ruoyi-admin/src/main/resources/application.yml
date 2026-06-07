@@ -73,8 +73,8 @@ spring:
     port: 6379
     # 数据库索引
     database: 0
-    # 密码
-    password: Arty869583
+    # 密码（本地未设置密码时请留空）
+    password:
     # 连接超时时间
     timeout: 10s
     lettuce:
