@@ -13,6 +13,7 @@ import store from './store'
 import router from './router'
 import directive from './directive' // directive
 import plugins from './plugins' // plugins
+import VibeToast from '@/plugins/vibe-toast'
 import { download } from '@/utils/request'
 
 import './assets/icons' // icon
@@ -61,6 +62,7 @@ Vue.component('ImagePreview', ImagePreview)
 
 Vue.use(directive)
 Vue.use(plugins)
+Vue.use(VibeToast)
 Vue.use(VueMeta)
 DictData.install()
 

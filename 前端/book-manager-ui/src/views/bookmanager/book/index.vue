@@ -145,7 +145,10 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="ISBN" prop="isbn">
-              <el-input v-model="form.isbn" placeholder="请输入ISBN" />
+              <el-input v-model="form.isbn" placeholder="请输入ISBN" style="width: calc(100% - 110px);" />
+              <el-button type="primary" size="mini" @click="fetchBookInfo" :loading="fetching" style="margin-left: 8px;">
+                {{ fetching ? '查询中…' : '自动填信息' }}
+              </el-button>
             </el-form-item>
           </el-col>
         </el-row>
@@ -241,6 +244,7 @@
 
 <script>
 import { listBook, getBook, delBook, addBook, updateBook, changeBookStatus } from "@/api/bookmanager/book";
+import { fetchBookByIsbn } from "@/api/bookmanager/bookapi";
 
 export default {
   name: "Book",
@@ -257,6 +261,7 @@ export default {
       bookList: [],
       title: "",
       open: false,
+      fetching: false,
       queryParams: {
         pageNum: 1,
         pageSize: 10,
@@ -324,6 +329,7 @@ export default {
         description: null,
         status: "0"
       };
+      this.fetching = false;
       this.resetForm("form");
     },
     handleQuery() {
@@ -383,6 +389,29 @@ export default {
         this.$modal.msgSuccess("删除成功");
       }).catch(() => {
       });
+    },
+    /** 根据 ISBN 自动填充图书信息 */
+    fetchBookInfo() {
+      if (!this.form.isbn) {
+        this.$vibe.warning('请先输入 ISBN 编号')
+        return
+      }
+      this.fetching = true
+      fetchBookByIsbn(this.form.isbn).then(res => {
+        const data = res.data
+        if (data.bookName) this.form.bookName = data.bookName
+        if (data.author) this.form.author = data.author
+        if (data.press) this.form.press = data.press
+        if (data.description) this.form.description = data.description
+        if (data.publishDate) this.form.publishDate = data.publishDate
+        if (data.coverImage) this.form.coverImage = data.coverImage
+        if (data.type) this.form.type = data.type
+        this.$vibe.success('已自动填充图书信息！')
+      }).catch(() => {
+        this.$vibe.warning('未找到该 ISBN 对应的图书信息')
+      }).finally(() => {
+        this.fetching = false
+      })
     },
     handleChangeStatus(row) {
       let statusText = row.status === '0' ? '下架' : '上架';

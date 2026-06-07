@@ -29,7 +29,10 @@
 
     <el-row :gutter="20" v-loading="loading" style="margin-top: 15px;">
       <el-col :span="6" v-for="(book, index) in bookList" :key="index" style="margin-bottom: 15px;">
-        <el-card shadow="hover" class="book-card" @click.native="handleDetail(book)">
+        <el-card shadow="hover" class="book-card"
+          @click.native="handleDetail(book)"
+          @mouseenter="showPreview($event, book)"
+          @mouseleave="hidePreview">
           <div class="book-cover">
             <img v-if="book.coverUrl" :src="book.coverUrl" class="cover-img" />
             <i v-else class="el-icon-reading default-cover"></i>
@@ -59,6 +62,13 @@
       :page.sync="queryParams.pageNum"
       :limit.sync="queryParams.pageSize"
       @pagination="getList"
+    />
+
+    <!-- 悬浮预览卡片 -->
+    <book-preview-card
+      :book="previewBook"
+      :visible="previewVisible"
+      :position="previewPosition"
     />
 
     <!-- 图书详情弹窗 -->
@@ -170,10 +180,11 @@ import { searchBooks } from "@/api/portal/index";
 import { getBookReviews, submitReview } from "@/api/portal/review";
 import { recommendByBook } from "@/api/portal/recommend";
 import BookRating from "@/components/BookRating";
+import BookPreviewCard from "@/components/BookPreviewCard";
 
 export default {
   name: "BookSearch",
-  components: { BookRating },
+  components: { BookRating, BookPreviewCard },
   dicts: ['book_type_list'],
   data() {
     return {
@@ -197,7 +208,12 @@ export default {
         rating: 5,
         content: ''
       },
-      recommendList: []
+      recommendList: [],
+      // 悬浮预览
+      previewVisible: false,
+      previewBook: {},
+      previewPosition: { top: '0', left: '0' },
+      previewTimer: null
     };
   },
   created() {
@@ -269,6 +285,23 @@ export default {
         this.newReview.content = ''
         this.loadReviews(this.form.bookId)
       })
+    },
+    /** 悬浮预览 */
+    showPreview(event, book) {
+      clearTimeout(this.previewTimer)
+      this.previewTimer = setTimeout(() => {
+        const rect = event.currentTarget.getBoundingClientRect()
+        this.previewBook = book
+        this.previewPosition = {
+          top: (rect.top - 130) + 'px',
+          left: Math.min(rect.left, window.innerWidth - 360) + 'px'
+        }
+        this.previewVisible = true
+      }, 300)
+    },
+    hidePreview() {
+      clearTimeout(this.previewTimer)
+      this.previewVisible = false
     }
   }
 };
